@@ -1,9 +1,8 @@
 [tool.poetry]
 name = "whisperly-backend"
 version = "0.1.0"
-description = "FastAPI backend for Whisperly audio transcription app."
-authors = ["Your Name <your.email@example.com>"]
-package-mode = false
+description = "FastAPI backend for Whisperly audio transcription"
+authors = ["Aldrin Jenson <aldrinjenson@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
