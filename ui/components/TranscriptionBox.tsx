@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, Share, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { toast } from 'sonner-native';
@@ -10,9 +10,26 @@ interface Props {
 }
 
 const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText }) => {
+  // Auto-copy to clipboard when transcription is complete
+  useEffect(() => {
+    if (transcribedText && !isTranscribing) {
+      Clipboard.setStringAsync(transcribedText);
+    }
+  }, [transcribedText, isTranscribing]);
+
   const handleCopy = async () => {
     await Clipboard.setStringAsync(transcribedText);
     toast.success('Copied to clipboard!');
+  };
+  
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: transcribedText,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
   };
 
   return (
@@ -28,10 +45,17 @@ const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText }) 
             {transcribedText || 'Your transcription will appear here...'}
           </Text>
           {transcribedText ? (
-            <Pressable style={styles.copyButton} onPress={handleCopy}>
-              <MaterialIcons name="content-copy" size={20} color="#007AFF" />
-              <Text style={styles.copyButtonText}>Copy</Text>
-            </Pressable>
+            <View style={styles.actionsContainer}>
+              <Pressable style={styles.actionButton} onPress={handleCopy}>
+                <MaterialIcons name="content-copy" size={20} color="#007AFF" />
+                <Text style={styles.actionButtonText}>Copy</Text>
+              </Pressable>
+              
+              <Pressable style={styles.actionButton} onPress={handleShare}>
+                <MaterialIcons name="share" size={20} color="#007AFF" />
+                <Text style={styles.actionButtonText}>Share</Text>
+              </Pressable>
+            </View>
           ) : null}
         </>
       )}
@@ -56,9 +80,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   transcriptionText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
-    lineHeight: 24,
+    lineHeight: 26,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   loadingContainer: {
     flex: 1,
@@ -69,20 +94,27 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#007AFF',
+    fontWeight: '500',
   },
-  copyButton: {
+  actionsContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    padding: 8,
-    marginTop: 10,
-    backgroundColor: '#F0F0F0',
+    padding: 10,
+    backgroundColor: '#F0F8FF',
     borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  copyButtonText: {
-    marginLeft: 4,
+  actionButtonText: {
+    marginLeft: 6,
     color: '#007AFF',
     fontSize: 14,
+    fontWeight: '500',
   },
 });
 
