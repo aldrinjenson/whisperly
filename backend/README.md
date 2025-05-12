@@ -9,28 +9,27 @@ This is a simple FastAPI backend for audio transcription using OpenAI Whisper.
 
 ## Requirements
 - Python 3.8+
+- [Poetry](https://python-poetry.org/docs/#installation)
 - An OpenAI API key ([get one here](https://platform.openai.com/account/api-keys))
 
 ## Installation
 
 ```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+poetry install
 ```
 
 ## Environment Variables
 
-Set your OpenAI API key as an environment variable:
+Create a `.env` file in the `backend` directory with the following content:
 
-```bash
-export OPENAI_API_KEY=your_openai_api_key_here
+```
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ## Running the Server
 
 ```bash
-uvicorn main:app --reload
+poetry run uvicorn main:app --reload
 ```
 
 ## Usage

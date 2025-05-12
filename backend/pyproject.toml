@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "whisperly-backend"
+version = "0.1.0"
+description = "FastAPI backend for Whisperly audio transcription app."
+authors = ["Your Name <your.email@example.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+fastapi = "*"
+uvicorn = "*"
+python-multipart = "*"
+openai = "*"
+python-dotenv = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 

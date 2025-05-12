@@ -4,6 +4,9 @@ from fastapi.responses import JSONResponse
 import openai
 from tempfile import NamedTemporaryFile
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env
 
 app = FastAPI()
 
