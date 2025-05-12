@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
+# Whisperly (React Native Expo)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is the mobile frontend for the Whisperly transcription app, built with React Native and Expo.
 
-## Get started
+## Features
+- Record audio and send to backend for transcription
+- View and copy transcriptions
+- Mobile-first (Android, iOS-ready)
 
-1. Install dependencies
+## Prerequisites
+- [Node.js](https://nodejs.org/) (v16 or later recommended)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/):
+  ```sh
+  npm install -g expo-cli
+  ```
+- Android device or emulator (iOS support coming later)
 
-   ```bash
-   npm install
+## Setup & Installation
+
+1. **Clone the repo and navigate to the directory:**
+   ```sh
+   cd whisperly
    ```
 
-2. Start the app
+2. **Install dependencies:**
+   ```sh
+   npm install --legacy-peer-deps
+   # or
+   npx expo install
+   ```
 
-   ```bash
+   > If you get dependency errors, try clearing the npm cache:
+   > ```sh
+   > npm cache clean --force
+   > rm -rf node_modules package-lock.json
+   > npm install --legacy-peer-deps
+   > ```
+
+3. **Set your backend URL:**
+   - The app is currently configured to use the backend URL in `app/index.tsx`:
+     ```ts
+     const response = await fetch('https://aj-development.athenaintelligence.ai/transcribe', { ... });
+     ```
+   - Change this to your own URL if needed.
+
+## Running the App
+
+1. **Start the Expo development server:**
+   ```sh
+   npm start
+   # or
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. **Run on your Android device:**
+   - Install the Expo Go app from the Play Store.
+   - Scan the QR code from your terminal/browser.
+   - Or run on an emulator with:
+     ```sh
+     npm run android
+     ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
+- `app/index.tsx` - Main screen for recording and transcription
+- `components/TranscriptionBox.tsx` - Shows/copies transcription
+- `components/RecordButton.tsx` - Record/stop button
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Troubleshooting
+- If you see dependency errors, ensure your `package.json` matches the required Expo SDK version.
+- Use `npm install --legacy-peer-deps` if you see peer dependency conflicts.
+- If you change the backend URL, make sure your phone and computer are on the same network (for ngrok to work).

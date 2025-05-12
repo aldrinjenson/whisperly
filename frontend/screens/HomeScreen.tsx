@@ -50,6 +50,9 @@ export default function HomeScreen() {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       setRecording(null);
+      
+      console.log('Recording URI:', uri);
+      
       if (uri) {
         setIsTranscribing(true);
         try {
@@ -59,7 +62,30 @@ export default function HomeScreen() {
             type: 'audio/m4a',
             name: 'recording.m4a',
           } as any);
-          const response = await fetch('https://aj-development.athenaintelligence.ai/transcribe', {
+          
+          console.log('Sending request to transcription API...');
+          console.log('Request URL:', 'https://aj-development.athenaintelligence.ai/transcribe');
+          console.log('FormData:', JSON.stringify(formData));
+          
+          const apiUrl = 'https://aj-development.athenaintelligence.ai/transcribe';
+          
+          try {
+            // First, test if the server is reachable
+            console.log('Testing server connectivity...');
+            const testResponse = await fetch(apiUrl, { 
+              method: 'HEAD',
+              headers: { 'Accept': 'application/json' }
+            }).catch(e => {
+              console.error('Server connectivity test failed:', e);
+              throw e;
+            });
+            
+            console.log('Server connectivity test result:', testResponse.status);
+          } catch (error) {
+            console.error('Server unreachable:', error);
+          }
+          
+          const response = await fetch(apiUrl, {
             method: 'POST',
             body: formData,
             headers: {
@@ -67,15 +93,25 @@ export default function HomeScreen() {
               'Content-Type': 'multipart/form-data',
             },
           });
+          
+          console.log('Response status:', response.status);
+          console.log('Response headers:', JSON.stringify(response.headers));
+          
           const data = await response.json();
+          console.log('Response data:', data);
+          
           if (data.transcription) {
             setTranscribedText(data.transcription);
             toast.success('Transcription complete');
           } else {
+            console.error('No transcription in response:', data);
             toast.error('Transcription failed');
           }
         } catch (error) {
-          console.error('Transcription error:', error);
+          console.error('Transcription error details:', error);
+          console.error('Error name:', error.name);
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
           toast.error('Error during transcription');
         } finally {
           setIsTranscribing(false);
