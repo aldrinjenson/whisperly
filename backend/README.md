@@ -32,6 +32,16 @@ OPENAI_API_KEY=your_openai_api_key_here
 poetry run uvicorn main:app --reload
 ```
 
+## Production Deployment
+
+For production, run the server with Uvicorn using the following command to listen on all interfaces (0.0.0.0) and the default port 8000:
+
+```bash
+poetry run uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+**Tip:** For reliability in production, use a process manager such as [systemd](https://uvicorn.org/deployment/#systemd), [supervisor](https://uvicorn.org/deployment/#supervisord), or run inside a Docker container. Refer to the [Uvicorn deployment docs](https://uvicorn.org/deployment/) for more details.
+
 ## Usage
 
 Send a POST request to `/transcribe/` with an audio file (e.g., mp3, wav) as form-data under the key `file`.
