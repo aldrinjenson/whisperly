@@ -7,7 +7,8 @@ import TranscriptionBox from '../components/TranscriptionBox';
 import RecordButton from '../components/RecordButton';
 
 // API endpoint configuration
-const BASE_URL = 'https://aj-development.athenaintelligence.ai';
+// const BASE_URL = 'https://aj-development.athenaintelligence.ai';
+const BASE_URL = 'https://whisperly.onrender.com';
 const API_URL = `${BASE_URL}/transcribe`;
 
 export default function Index() {

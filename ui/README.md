@@ -39,7 +39,7 @@ This is the mobile frontend for the Whisperly transcription app, built with Reac
 3. **Set your backend URL:**
    - The app is currently configured to use the backend URL in `app/index.tsx`:
      ```ts
-     const response = await fetch('https://aj-development.athenaintelligence.ai/transcribe', { ... });
+     const response = await fetch('https://localhost:8000/transcribe', { ... });
      ```
    - Change this to your own URL if needed.
 
