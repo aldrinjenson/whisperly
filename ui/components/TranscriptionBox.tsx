@@ -7,9 +7,10 @@ import { toast } from 'sonner-native';
 interface Props {
   isTranscribing: boolean;
   transcribedText: string;
+  style?: any;
 }
 
-const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText }) => {
+const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, style }) => {
   // Auto-copy to clipboard when transcription is complete
   useEffect(() => {
     if (transcribedText && !isTranscribing) {
@@ -33,7 +34,7 @@ const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText }) 
   };
 
   return (
-    <View style={styles.transcriptionContainer}>
+    <View style={[styles.transcriptionContainer, style]}>
       {isTranscribing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
