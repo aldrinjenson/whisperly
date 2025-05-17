@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { toast } from 'sonner-native';
-
+import { FORMATTING_API_URL } from '@/constants';
+``
 interface Props {
   originalText: string;
 }
@@ -15,9 +16,6 @@ const FORMAT_OPTIONS: { label: string; value: FormatOption }[] = [
   { label: 'Fix Grammar', value: 'grammar' },
   { label: 'Custom', value: 'custom' },
 ];
-
-const BASE_URL = 'https://aj-development.athenaintelligence.ai';
-const FORMAT_API_URL = `${BASE_URL}/format`;
 
 const FormattingSection: React.FC<Props> = ({ originalText }) => {
   const [option, setOption] = useState<FormatOption>('email');
@@ -39,7 +37,7 @@ const FormattingSection: React.FC<Props> = ({ originalText }) => {
     setFormattedText('');
 
     try {
-      const response = await fetch(FORMAT_API_URL, {
+      const response = await fetch(FORMATTING_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

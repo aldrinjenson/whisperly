@@ -7,12 +7,7 @@ import RecordButton from '../components/RecordButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FormattingSection from '../components/FormattingSection';
 import * as Clipboard from 'expo-clipboard';
-
-// API endpoint configuration
-// const BASE_URL = 'https://aj-development.athenaintelligence.ai';
-// const BASE_URL = 'https://whisperly.onrender.com';
-const BASE_URL = 'https://whisperly-backend.fly.dev';
-const API_URL = `${BASE_URL}/transcribe`;
+import { TRANSCRIPTION_API_URL } from '@/constants';
 
 export default function Index() {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -99,7 +94,7 @@ export default function Index() {
           if (keywords.length > 0) {
             formData.append('keywords', keywords.join(', '));
           }
-          const response = await fetch(API_URL, {
+          const response = await fetch(TRANSCRIPTION_API_URL, {
             method: 'POST',
             body: formData,
             headers: {
