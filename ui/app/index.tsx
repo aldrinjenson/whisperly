@@ -10,7 +10,8 @@ import * as Clipboard from 'expo-clipboard';
 
 // API endpoint configuration
 // const BASE_URL = 'https://aj-development.athenaintelligence.ai';
-const BASE_URL = 'https://whisperly.onrender.com';
+// const BASE_URL = 'https://whisperly.onrender.com';
+const BASE_URL = 'https://whisperly-backend.fly.dev';
 const API_URL = `${BASE_URL}/transcribe`;
 
 export default function Index() {
