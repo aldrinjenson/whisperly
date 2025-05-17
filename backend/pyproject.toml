@@ -6,7 +6,7 @@ authors = ["Aldrin Jenson <aldrinjenson@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-fastapi = "*"
+fastapi = {extras = ["standard"], version = "^0.115.12"}
 uvicorn = "*"
 python-multipart = "*"
 openai = "*"
