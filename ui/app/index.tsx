@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, Platform, Clipboard, TextInput, ScrollView } from 'react-native';
-import { useAudioRecorder, RecordingPresets, AudioModule } from 'expo-audio';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, TextInput, ScrollView } from 'react-native';
+import { useAudioRecorder, RecordingPresets } from 'expo-audio';
 import { toast } from 'sonner-native';
-import * as FileSystem from 'expo-file-system';
 import TranscriptionBox from '../components/TranscriptionBox';
 import RecordButton from '../components/RecordButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FormattingSection from '../components/FormattingSection';
+import * as Clipboard from 'expo-clipboard';
 
 // API endpoint configuration
-const BASE_URL = 'https://aj-development.athenaintelligence.ai';
-// const BASE_URL = 'https://whisperly.onrender.com';
+// const BASE_URL = 'https://aj-development.athenaintelligence.ai';
+const BASE_URL = 'https://whisperly.onrender.com';
 const API_URL = `${BASE_URL}/transcribe`;
 
 export default function Index() {
@@ -21,6 +22,7 @@ export default function Index() {
   const durationTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState('');
+  const [keywordsCollapsed, setKeywordsCollapsed] = useState(true);
 
   // Load keywords from AsyncStorage on mount
   useEffect(() => {
@@ -109,7 +111,7 @@ export default function Index() {
             const data = await response.json();
             if (data.transcription) {
               setTranscribedText(data.transcription);
-              await Clipboard.setString(data.transcription);
+              await Clipboard.setStringAsync(data.transcription);
               toast.success('Transcription copied to clipboard');
             } else {
               toast.error('Transcription failed');
@@ -138,8 +140,24 @@ export default function Index() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
 
+  async function cancelRecording() {
+    try {
+      if (durationTimer.current) {
+        clearInterval(durationTimer.current);
+        durationTimer.current = null;
+      }
+      await audioRecorder.stop();
+    } catch (_) {
+      // ignore
+    } finally {
+      setIsRecording(false);
+      toast.info('Recording cancelled');
+    }
+  }
+
   return (
     <View style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.title}>Whisperly</Text>
         <Text style={styles.subtitle}>Voice to Text Transcription</Text>
@@ -151,44 +169,64 @@ export default function Index() {
       </View>
       {/* Keyword Stack UI */}
       <View style={styles.keywordSection}>
-        <Text style={styles.keywordLabel}>Keywords / Names to Remember:</Text>
-        <View style={styles.keywordInputRow}>
-          <TextInput
-            style={styles.keywordInput}
-            placeholder="Add keyword (e.g. names, terms)"
-            value={keywordInput}
-            onChangeText={setKeywordInput}
-            onSubmitEditing={addKeyword}
-            returnKeyType="done"
-          />
-          <TouchableOpacity style={styles.addButton} onPress={addKeyword}>
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
-          {keywords.map((kw, idx) => (
-            <View key={kw + idx} style={styles.chip}>
-              <Text style={styles.chipText}>{kw}</Text>
-              <TouchableOpacity onPress={() => removeKeyword(kw)}>
-                <Text style={styles.chipRemove}>×</Text>
+        <TouchableOpacity onPress={() => setKeywordsCollapsed(!keywordsCollapsed)} style={styles.keywordHeaderRow}>
+          <Text style={styles.keywordLabel}>Keywords / Names to Remember</Text>
+          <Text style={styles.keywordToggle}>{keywordsCollapsed ? '▼' : '▲'}</Text>
+        </TouchableOpacity>
+        {!keywordsCollapsed && (
+          <>
+            <View style={styles.keywordInputRow}>
+              <TextInput
+                style={styles.keywordInput}
+                placeholder="Add keyword (e.g. names, terms)"
+                value={keywordInput}
+                onChangeText={setKeywordInput}
+                onSubmitEditing={addKeyword}
+                returnKeyType="done"
+              />
+              <TouchableOpacity style={styles.addButton} onPress={addKeyword}>
+                <Text style={styles.addButtonText}>Add</Text>
               </TouchableOpacity>
             </View>
-          ))}
-        </ScrollView>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+              {keywords.map((kw, idx) => (
+                <View key={kw + idx} style={styles.chip}>
+                  <Text style={styles.chipText}>{kw}</Text>
+                  <TouchableOpacity onPress={() => removeKeyword(kw)}>
+                    <Text style={styles.chipRemove}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          </>
+        )}
       </View>
-      {/* Add clear transcription button here */}
-      <TouchableOpacity disabled={!transcribedText} style={[styles.clearTranscriptionButton, !transcribedText && styles.clearTranscriptionButtonDisabled]} onPress={clearTranscription}>
-        <Text style={styles.clearTranscriptionButtonText}>Clear</Text>
-      </TouchableOpacity>
       <TranscriptionBox
         isTranscribing={isTranscribing}
         transcribedText={transcribedText}
+        onChangeText={setTranscribedText}
+        onClear={clearTranscription}
         style={styles.transcriptionBoxMargin}
       />
+
+      {(isTranscribing || transcribedText) && (
+        <FormattingSection originalText={transcribedText} />
+      )}
+
+      {/* Extra bottom spacing so last element is not hidden behind record button */}
+      <View style={{ height: 40 }} />
+      </ScrollView>
+
       <RecordButton
         isRecording={isRecording}
         onPress={isRecording ? stopRecording : startRecording}
       />
+
+      {isRecording && (
+        <TouchableOpacity style={styles.cancelButton} onPress={cancelRecording}>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -197,6 +235,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    // padding: 20,
   },
   header: {
     padding: 20,
@@ -293,20 +337,29 @@ const styles = StyleSheet.create({
   transcriptionBoxMargin: {
     marginTop: 40,
   },
-  clearTranscriptionButton: {
+  keywordHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  keywordToggle: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginLeft: 6,
+  },
+  cancelButton: {
+    position: 'absolute',
+    bottom: 120,
     alignSelf: 'center',
-    backgroundColor: '#eee',
+    backgroundColor: '#FF3B30',
     paddingVertical: 8,
     paddingHorizontal: 18,
     borderRadius: 8,
-    marginBottom: 10,
   },
-  clearTranscriptionButtonText: {
+  cancelButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 15,
-  },
-  clearTranscriptionButtonDisabled: {
-    backgroundColor: '#E0E0E0',
   },
 });

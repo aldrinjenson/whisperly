@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, Share, Platform } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Pressable, Share, Platform, TextInput } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { toast } from 'sonner-native';
@@ -7,10 +7,12 @@ import { toast } from 'sonner-native';
 interface Props {
   isTranscribing: boolean;
   transcribedText: string;
+  onChangeText?: (t: string) => void;
+  onClear?: () => void;
   style?: any;
 }
 
-const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, style }) => {
+const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, onChangeText, onClear, style }) => {
   // Auto-copy to clipboard when transcription is complete
   useEffect(() => {
     if (transcribedText && !isTranscribing) {
@@ -33,6 +35,13 @@ const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, st
     }
   };
 
+  const handleClear = () => {
+    if (onClear) {
+      onClear();
+      toast.success('Transcription cleared');
+    }
+  };
+
   return (
     <View style={[styles.transcriptionContainer, style]}>
       {isTranscribing ? (
@@ -42,9 +51,16 @@ const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, st
         </View>
       ) : (
         <>
-          <Text style={styles.transcriptionText}>
-            {transcribedText || 'Your transcription will appear here...'}
-          </Text>
+          <View style={styles.scrollWrapper}>
+            <TextInput
+              style={styles.transcriptionText}
+              multiline
+              scrollEnabled
+              value={transcribedText}
+              onChangeText={onChangeText}
+              placeholder="Your transcription will appear here..."
+            />
+          </View>
           {transcribedText ? (
             <View style={styles.actionsContainer}>
               <Pressable style={styles.actionButton} onPress={handleCopy}>
@@ -56,6 +72,11 @@ const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, st
                 <MaterialIcons name="share" size={20} color="#007AFF" />
                 <Text style={styles.actionButtonText}>Share</Text>
               </Pressable>
+              
+              <Pressable style={[styles.actionButton, styles.clearButton]} onPress={handleClear}>
+                <MaterialIcons name="delete-outline" size={20} color="#FF3B30" />
+                <Text style={[styles.actionButtonText, styles.clearButtonText]}>Clear</Text>
+              </Pressable>
             </View>
           ) : null}
         </>
@@ -66,7 +87,6 @@ const TranscriptionBox: React.FC<Props> = ({ isTranscribing, transcribedText, st
 
 const styles = StyleSheet.create({
   transcriptionContainer: {
-    flex: 1,
     margin: 20,
     padding: 20,
     backgroundColor: 'white',
@@ -85,6 +105,10 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 26,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    minHeight: 120,
+  },
+  scrollWrapper: {
+    maxHeight: 250,
   },
   loadingContainer: {
     flex: 1,
@@ -116,6 +140,13 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '500',
+  },
+  clearButton: {
+    backgroundColor: '#FFEBEB',
+    borderColor: '#FF3B30',
+  },
+  clearButtonText: {
+    color: '#FF3B30',
   },
 });
 

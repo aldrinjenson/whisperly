@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from tempfile import NamedTemporaryFile
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from typing import Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +35,65 @@ if not OPENAI_API_KEY:
 
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+# ------------------------
+# Pydantic models
+# ------------------------
+
+
+class FormatRequest(BaseModel):
+    """Request body for /format endpoint.
+
+    Attributes
+    ----------
+    text : str
+        Raw text that needs to be refined.
+    mode : str, optional
+        One of ["email", "slack", "grammar", "custom"]. Defaults to "email".
+    instruction : str | None, optional
+        Custom instruction text required when mode == "custom".
+    """
+
+    text: str
+    mode: str = "email"
+    instruction: Optional[str] = None
+
+# ------------------------
+# Helper utilities
+# ------------------------
+
+
+def build_system_prompt(req: FormatRequest) -> str:
+    """Return an appropriate system prompt based on the mode."""
+
+    base_email = (
+        "You are a helpful assistant that formats the user's raw text into a clear, "
+        "professionally-written email. Preserve the user's intent while improving "
+        "grammar, structure, tone and adding an appropriate greeting and closing."
+    )
+
+    base_slack = (
+        "You are a helpful assistant that turns the user's raw text into a concise, "
+        "well-structured Slack message. Keep it informal, clear and actionable."
+    )
+
+    base_grammar = (
+        "You are a helpful assistant that fixes grammar, punctuation and overall "
+        "readability of the user's text while keeping original meaning."
+    )
+
+    if req.mode == "email":
+        return base_email
+    if req.mode == "slack":
+        return base_slack
+    if req.mode == "grammar":
+        return base_grammar
+    # custom
+    return req.instruction or "You are a helpful assistant that improves the user's text."
+
+# ------------------------
+# Routes
+# ------------------------
 
 @app.get("/health")
 async def health_check():
@@ -92,3 +153,45 @@ async def transcribe_audio(
     except Exception as e:
         logger.error(f"Error during transcription: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 
+
+@app.post("/format")
+async def format_text(req: FormatRequest):
+    """Format or refine text using OpenAI GPT-3.5-Turbo.
+
+    The endpoint accepts a JSON body conforming to `FormatRequest` and returns JSON:
+
+        {
+          "formatted": "<formatted_text>"
+        }
+
+    Possible `mode` values:
+
+    - email  → Formats as a professional email.
+    - slack  → Formats as an informal Slack message.
+    - grammar → Fixes grammar & punctuation.
+    - custom → Uses the supplied `instruction` verbatim.
+    """
+
+    if req.mode == "custom" and not req.instruction:
+        raise HTTPException(status_code=400, detail="`instruction` is required when mode is 'custom'.")
+
+    try:
+        system_prompt = build_system_prompt(req)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": req.text},
+            ],
+            max_tokens=1024,
+            temperature=0.7,
+        )
+
+        formatted_text = completion.choices[0].message.content.strip()
+
+        return JSONResponse({"formatted": formatted_text})
+
+    except Exception as e:
+        logger.error(f"Formatting error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
